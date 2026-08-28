@@ -7,40 +7,40 @@
       { id: "HK", tz: HKT, sessions: [{open: 9*60+30, close: 12*60},{open: 13*60, close: 16*60}] },
       { id: "JP", tz: JST, sessions: [{open: 9*60, close: 11*60+30},{open: 12*60+30, close: 15*60}] },
     ];
-    const SEED = {
-      append_only: true,
-      events: [
-        {
-          id: "evt-2026-08-27-sign-spy",
-          ticket_id: "WK-2026-08-21-SPY",
-          type: "SIGN",
-          recorded_at_hkt: "2026-08-27T00:00:00+08:00",
-          actor: "cos",
-          fill: null,
-          rationale: {
-            action: "SPY US BUY ETF",
-            usd_size: 5000,
-            why: "Analyst SPY 10w +3.2 / 25w +11.6 as of Fri 21 Aug 2026; overlay off; PLTR vs SPY FAIL G3; HK CASH (0005 G3 FAIL; 2800 25w ≤0); JP CASH (6857 G3 FAIL; 1321 10w −1.1); not buying 0005.HK, 2800.HK, 1321.T, PLTR, 6857.T, 6098.T",
-            buy_not_above: 779.37,
-            buy_not_above_note: "10w high week of 10 Aug, not 767.35",
-            researcher_print: { source: "Yahoo SPY", last: 766.08, range_low: 763.93, range_high: 767.35, prior: 765.91, label: "close 04:00 HKT 27 Aug" },
-            check_3: "PENDING",
-            tracker_fill: null,
-            what_kills_it: "10w or 25w ≤0 → cash; US stock all-five → one sleeve change; gap through 779 at open → SKIP until next Friday",
-            cos_signoff: "CoS signed 27 Aug 2026 HKT"
-          }
-        },
-        {
-          id: "evt-2026-08-27-fill-spy",
-          ticket_id: "WK-2026-08-21-SPY",
-          type: "FILL",
-          recorded_at_hkt: "2026-08-27T23:11:00+08:00",
-          actor: "tracker",
-          fill: { ticker: "SPY", qty: 6, price: 770.53, time_hkt: "2026-08-27T23:11:00+08:00" },
-          rationale: null
-        }
-      ]
+    const FILL = { ticker: "SPY", qty: 6, price: 770.53, time_hkt: "2026-08-27T23:11:00+08:00" };
+    const SIGN_RATIONALE = {
+      action: "SPY US BUY ETF",
+      usd_size: 5000,
+      why: "Analyst SPY 10w +3.2 / 25w +11.6 as of Fri 21 Aug 2026; overlay off; PLTR vs SPY FAIL G3; HK CASH (0005 G3 FAIL; 2800 25w ≤0); JP CASH (6857 G3 FAIL; 1321 10w −1.1); not buying 0005.HK, 2800.HK, 1321.T, PLTR, 6857.T, 6098.T",
+      buy_not_above: 779.37,
+      buy_not_above_note: "10w high week of 10 Aug, not 767.35",
+      researcher_print: { source: "Yahoo SPY", last: 766.08, range_low: 763.93, range_high: 767.35, prior: 765.91, label: "close 04:00 HKT 27 Aug" },
+      check_3: "PENDING",
+      tracker_fill: null,
+      what_kills_it: "10w or 25w ≤0 → cash; US stock all-five → one sleeve change; gap through 779 at open → SKIP until next Friday",
+      cos_signoff: "CoS signed 27 Aug 2026 HKT"
     };
+    const FILL_RATIONALE = Object.assign({}, SIGN_RATIONALE, { tracker_fill: FILL });
+    const SEED = [
+      {
+        id: "evt-2026-08-27-sign-spy",
+        ticket_id: "WK-2026-08-21-SPY",
+        type: "SIGN",
+        recorded_at_hkt: "2026-08-27T00:00:00+08:00",
+        actor: "cos",
+        fill: null,
+        rationale: SIGN_RATIONALE
+      },
+      {
+        id: "evt-2026-08-27-fill-spy",
+        ticket_id: "WK-2026-08-21-SPY",
+        type: "FILL",
+        recorded_at_hkt: "2026-08-27T23:11:00+08:00",
+        actor: "tracker",
+        fill: FILL,
+        rationale: FILL_RATIONALE
+      }
+    ];
 
     function parts(date, tz) {
       const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
@@ -138,8 +138,29 @@
     function esc(s) {
       return String(s).replace(/[&<>"]/g, function (c) { return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]; });
     }
-    function whyHtml(rationale, fill) {
+    function asLedgerArray(raw) {
+      return Array.isArray(raw) && raw.length ? raw : SEED;
+    }
+    function newestFirst(events) {
+      return events.slice().sort(function (a, b) {
+        return a.recorded_at_hkt < b.recorded_at_hkt ? 1 : -1;
+      });
+    }
+    function tickerOf(e) {
+      if (e.fill && e.fill.ticker) return e.fill.ticker;
+      if (e.rationale && e.rationale.action) return String(e.rationale.action).trim().split(/\s+/)[0];
+      return "";
+    }
+    function sleeveOf(ticker) {
+      if (ticker.slice(-3) === ".HK") return "HK";
+      if (ticker.slice(-2) === ".T") return "JP";
+      return ticker ? "US" : "";
+    }
+    function whyHtml(ev) {
+      const rationale = ev.rationale;
+      if (!rationale) return '<p class="dim">No frozen why on this event.</p>';
       const p = rationale.researcher_print;
+      const fill = ev.fill || rationale.tracker_fill;
       const fillBlock = fill
         ? '<p class="fill-chip">FILL '+esc(fill.ticker)+' '+fill.qty+' @ '+Number(fill.price).toFixed(2)+' · '+esc(fill.time_hkt)+'</p>'
         : '<p class="mono dim">tracker_fill null</p>';
@@ -151,30 +172,91 @@
         '<p class="dim">'+esc(rationale.what_kills_it)+'</p>' +
         '<p class="dim">'+esc(rationale.cos_signoff)+'</p>';
     }
-    function renderLedger(file) {
-      const events = (file.events || []).slice().sort(function (a, b) {
-        return a.recorded_at_hkt < b.recorded_at_hkt ? 1 : -1;
+    function renderLiveWhy(events) {
+      const latest = newestFirst(events)[0];
+      const box = document.getElementById("live-why");
+      if (!box || !latest) return;
+      const kicker = box.querySelector("[data-live-kicker]");
+      const meta = box.querySelector("[data-live-meta]");
+      const body = box.querySelector("[data-live-body]");
+      if (kicker) kicker.textContent = "Why · latest event · " + latest.type;
+      if (meta) meta.textContent = latest.id + " · " + latest.recorded_at_hkt + " · " + latest.actor;
+      if (body) body.innerHTML = whyHtml(latest);
+    }
+    function hashId() {
+      try {
+        return decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+      } catch {
+        return "";
+      }
+    }
+    function showCard(ev) {
+      const detail = document.getElementById("blotter-detail");
+      if (!detail) return;
+      if (!ev) {
+        detail.style.display = "none";
+        detail.innerHTML = "";
+        return;
+      }
+      detail.style.display = "block";
+      detail.innerHTML = '<p class="kicker">Frozen Why · '+esc(ev.type)+' '+esc(ev.id)+'</p>' +
+        '<p class="mono dim">'+esc(ev.recorded_at_hkt)+'</p>' +
+        whyHtml(ev);
+    }
+    function highlight(id) {
+      document.querySelectorAll(".blotter-row").forEach(function (r) {
+        r.classList.toggle("sel", r.getAttribute("data-id") === id);
       });
-      const sign = events.filter(function (e) { return e.type === "SIGN"; }).pop();
-      const body = document.getElementById("ledger-body");
-      const detail = document.getElementById("ledger-detail");
+    }
+    function openFromHash(events) {
+      const id = hashId();
+      const blotter = document.getElementById("blotter");
+      if (!id) {
+        highlight("");
+        showCard(null);
+        return;
+      }
+      const ev = events.find(function (e) { return e.id === id; });
+      if (!ev) {
+        highlight("");
+        showCard(null);
+        if (blotter) blotter.scrollIntoView({ block: "start" });
+        return;
+      }
+      highlight(ev.id);
+      showCard(ev);
+      const card = document.getElementById("blotter-detail");
+      if (card && card.scrollIntoView) card.scrollIntoView({ block: "nearest" });
+    }
+    function renderBlotter(raw) {
+      const events = newestFirst(asLedgerArray(raw));
+      const body = document.getElementById("blotter-body");
       body.innerHTML = events.map(function (e) {
-        const fillTxt = e.fill ? (e.fill.ticker+' '+e.fill.qty+' @ '+Number(e.fill.price).toFixed(2)) : "null";
-        return '<tr class="ledger-row" data-id="'+esc(e.id)+'"><td class="mono">'+esc(e.recorded_at_hkt)+'</td><td class="mono"><strong>'+esc(e.type)+'</strong></td><td>'+esc(e.actor)+'</td><td class="mono">'+esc(e.id)+'</td><td class="mono">'+esc(fillTxt)+'</td></tr>';
+        const ticker = tickerOf(e);
+        const qty = e.fill ? e.fill.qty : "";
+        const price = e.fill ? Number(e.fill.price).toFixed(2) : "";
+        const usd = e.rationale ? e.rationale.usd_size : "";
+        const why = e.rationale ? e.rationale.why : "";
+        return '<tr class="blotter-row" data-id="'+esc(e.id)+'" id="'+esc(e.id)+'">' +
+          '<td class="mono">'+esc(e.recorded_at_hkt)+'</td>' +
+          '<td class="mono"><strong>'+esc(e.type)+'</strong></td>' +
+          '<td class="mono">'+esc(ticker)+'</td>' +
+          '<td class="mono">'+esc(qty)+'</td>' +
+          '<td class="mono">'+esc(price)+'</td>' +
+          '<td>'+esc(sleeveOf(ticker))+'</td>' +
+          '<td class="mono">'+esc(usd)+'</td>' +
+          '<td class="why-line" title="'+esc(why)+'">'+esc(why)+'</td>' +
+          '</tr>';
       }).join("");
-      body.querySelectorAll(".ledger-row").forEach(function (row) {
+      body.querySelectorAll(".blotter-row").forEach(function (row) {
         row.addEventListener("click", function () {
-          const id = row.getAttribute("data-id");
-          const ev = events.find(function (e) { return e.id === id; });
-          body.querySelectorAll(".ledger-row").forEach(function (r) { r.classList.remove("sel"); });
-          row.classList.add("sel");
-          if (!ev || !sign || !sign.rationale) return;
-          detail.style.display = "block";
-          detail.innerHTML = '<p class="kicker">Frozen Why · '+esc(ev.type)+' '+esc(ev.id)+'</p>' +
-            '<p class="mono dim">'+esc(ev.recorded_at_hkt)+'</p>' +
-            whyHtml(sign.rationale, ev.fill);
+          const id = row.getAttribute("data-id") || "";
+          if (id) location.hash = id;
         });
       });
+      renderLiveWhy(events);
+      openFromHash(events);
+      window.__deskEvents = events;
     }
 
     document.getElementById("hkTime").value = nowHktLocal(new Date());
@@ -215,10 +297,14 @@
       showPayload(payload);
     });
 
-    renderLedger(SEED);
+    window.addEventListener("hashchange", function () {
+      openFromHash(window.__deskEvents || newestFirst(SEED));
+    });
+
+    renderBlotter(SEED);
     fetch("ledger.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : SEED; }).then(function (file) {
-      if (file && Array.isArray(file.events)) renderLedger(file);
-    }).catch(function () { renderLedger(SEED); });
+      renderBlotter(file);
+    }).catch(function () { renderBlotter(SEED); });
 
     tick();
     setInterval(tick, 1000);
