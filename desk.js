@@ -211,6 +211,8 @@
     function openFromHash(events) {
       const id = hashId();
       const blotter = document.getElementById("blotter");
+      const missing = document.getElementById("blotter-missing");
+      if (missing) missing.style.display = "none";
       if (!id) {
         highlight("");
         showCard(null);
@@ -220,6 +222,10 @@
       if (!ev) {
         highlight("");
         showCard(null);
+        if (missing) {
+          missing.style.display = "block";
+          missing.textContent = "No event " + id + ". Blotter is below. Page did not crash.";
+        }
         if (blotter) blotter.scrollIntoView({ block: "start" });
         return;
       }
@@ -227,6 +233,25 @@
       showCard(ev);
       const card = document.getElementById("blotter-detail");
       if (card && card.scrollIntoView) card.scrollIntoView({ block: "nearest" });
+    }
+    function selectEvent(id, events) {
+      if (!id) return;
+      if (hashId() !== id) {
+        try {
+          history.replaceState(null, "", "#" + id);
+        } catch {
+          location.hash = id;
+        }
+      }
+      const ev = events.find(function (e) { return e.id === id; });
+      if (!ev) {
+        openFromHash(events);
+        return;
+      }
+      const missing = document.getElementById("blotter-missing");
+      if (missing) missing.style.display = "none";
+      highlight(ev.id);
+      showCard(ev);
     }
     function renderBlotter(raw) {
       const events = newestFirst(asLedgerArray(raw));
@@ -237,7 +262,7 @@
         const price = e.fill ? Number(e.fill.price).toFixed(2) : "";
         const usd = e.rationale ? e.rationale.usd_size : "";
         const why = e.rationale ? e.rationale.why : "";
-        return '<tr class="blotter-row" data-id="'+esc(e.id)+'" id="'+esc(e.id)+'">' +
+        return '<tr class="blotter-row" data-id="'+esc(e.id)+'">' +
           '<td class="mono">'+esc(e.recorded_at_hkt)+'</td>' +
           '<td class="mono"><strong>'+esc(e.type)+'</strong></td>' +
           '<td class="mono">'+esc(ticker)+'</td>' +
@@ -249,9 +274,9 @@
           '</tr>';
       }).join("");
       body.querySelectorAll(".blotter-row").forEach(function (row) {
-        row.addEventListener("click", function () {
-          const id = row.getAttribute("data-id") || "";
-          if (id) location.hash = id;
+        row.addEventListener("click", function (evt) {
+          evt.preventDefault();
+          selectEvent(row.getAttribute("data-id") || "", events);
         });
       });
       renderLiveWhy(events);
