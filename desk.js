@@ -20,7 +20,13 @@
       what_kills_it: "10w or 25w ≤0 → cash; US stock all-five → one sleeve change; gap through 779 at open → SKIP until next Friday",
       cos_signoff: "CoS signed 27 Aug 2026 HKT"
     };
-    const FILL_RATIONALE = Object.assign({}, SIGN_RATIONALE, { tracker_fill: FILL });
+    const FILL_RATIONALE = Object.assign({}, SIGN_RATIONALE, {
+      tracker_fill: FILL,
+      headline: "Tracker fill SPY 6 @ 770.53 at 23:11 HKT",
+      check_3: "PASS",
+      check_7: "booked",
+      later_print_note: "770.39 is a later print, not the fill"
+    });
     const SEED = [
       {
         id: "evt-2026-08-27-sign-spy",
@@ -41,13 +47,15 @@
         rationale: FILL_RATIONALE
       }
     ];
+    let deskEvents = SEED;
 
     function parts(date, tz) {
       const f = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
       const bag = {};
       for (const p of f.formatToParts(date)) if (p.type !== "literal") bag[p.type] = p.value;
       const hour = +bag.hour, minute = +bag.minute;
-      return { weekday: bag.weekday, wd: WD.indexOf(bag.weekday), y: +bag.year, m: +bag.month, d: +bag.day, hour, minute, second: +bag.second, minutes: hour*60+minute };
+      const wdName = String(bag.weekday || "").replace(/\./g,"").slice(0,3);
+      return { weekday: bag.weekday, wd: WD.indexOf(wdName), y: +bag.year, m: +bag.month, d: +bag.day, hour, minute, second: +bag.second, minutes: hour*60+minute };
     }
     function tzOff(date, tz) {
       const p = parts(date, tz);
@@ -65,7 +73,12 @@
     }
     function hm(mins) { return { h: Math.floor(mins/60), min: mins%60 }; }
     function fmtHkt(date) {
-      return new Intl.DateTimeFormat("en-GB", { timeZone: HKT, weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date).replace(",","") + " HKT";
+      if (!date || isNaN(date.getTime())) return "";
+      try {
+        return new Intl.DateTimeFormat("en-GB", { timeZone: HKT, weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(date).replace(/,/g,"") + " HKT";
+      } catch {
+        return "";
+      }
     }
     function fmtZone(date, tz) {
       return new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).format(date);
@@ -112,18 +125,42 @@
     }
     function tick() {
       const now = new Date();
-      document.getElementById("desk-hkt").textContent = fmtZone(now, HKT);
-      document.getElementById("foot-hkt").textContent = fmtHkt(now);
+      const deskHkt = document.getElementById("desk-hkt");
+      const footHkt = document.getElementById("foot-hkt");
+      if (deskHkt) deskHkt.textContent = fmtZone(now, HKT);
+      if (footHkt) footHkt.textContent = fmtHkt(now);
       VENUES.forEach(function (v) {
-        const c = clock(v, now);
         const root = document.querySelector('[data-venue="'+v.id+'"]');
-        root.querySelector("[data-tm]").textContent = c.local;
-        setChip(root.querySelector("[data-st]"), c.status, c.status);
-        root.querySelector("[data-ev]").textContent = c.next;
-        root.querySelector("[data-nx]").textContent = c.nextHkt;
+        if (!root) return;
+        let c;
+        try {
+          c = clock(v, now);
+        } catch {
+          c = null;
+        }
+        if (!c || !c.nextHkt) {
+          const p = parts(now, v.tz);
+          const n = nextOpen(v, p.y, p.m, p.d, p.wd === -1 ? 6 : p.wd);
+          c = { local: "--:--:--", status:"CLOSED", next:"open", nextHkt: fmtHkt(n) || "Monday open HKT", weekend:true };
+        }
+        const tm = root.querySelector("[data-tm]");
+        const st = root.querySelector("[data-st]");
+        const ev = root.querySelector("[data-ev]");
+        const nx = root.querySelector("[data-nx]");
         const wk = root.querySelector("[data-wk]");
+        if (tm) tm.textContent = c.local;
+        if (st) setChip(st, c.status, c.status);
+        if (ev) ev.textContent = c.next || "open";
+        if (nx) nx.textContent = c.nextHkt;
         if (wk) wk.textContent = c.weekend ? "Weekend · Monday open" : "";
       });
+      const wp = document.getElementById("weekend-print");
+      if (wp) {
+        const hkt = parts(now, HKT);
+        const closed = hkt.wd === 0 || hkt.wd === 6;
+        wp.style.display = closed ? "block" : "none";
+        if (closed) wp.textContent = "Weekend CLOSED. Last print 770.39 · Yahoo 23:03 HKT 27 Aug. No Saturday tape.";
+      }
     }
     function nowHktLocal(now) {
       const p = parts(now, HKT);
@@ -161,14 +198,20 @@
       if (!rationale) return '<p class="dim">No frozen why on this event.</p>';
       const p = rationale.researcher_print;
       const fill = ev.fill || rationale.tracker_fill;
+      const isFill = ev.type === "FILL" || !!fill;
       const fillBlock = fill
-        ? '<p class="fill-chip">FILL '+esc(fill.ticker)+' '+fill.qty+' @ '+Number(fill.price).toFixed(2)+' · '+esc(fill.time_hkt)+'</p>'
+        ? '<p class="fill-chip">'+esc(rationale.headline || ("Tracker fill "+fill.ticker+" "+fill.qty+" @ "+Number(fill.price).toFixed(2)+" at 23:11 HKT"))+'</p>'
         : '<p class="mono dim">tracker_fill null</p>';
+      const printLabel = isFill ? "print at SIGN only" : "researcher_print at SIGN";
+      const later = isFill
+        ? '<p class="mono dim">'+esc(rationale.later_print_note || "770.39 is a later print, not the fill")+". Check 7 "+esc(rationale.check_7 || "booked")+".</p>"
+        : "";
       return fillBlock +
         '<p style="margin-top:10px"><span class="muted">Action </span>'+esc(rationale.action)+' · usd_size '+Number(rationale.usd_size).toLocaleString("en-US")+'</p>' +
         '<p>'+esc(rationale.why)+'</p>' +
         '<p>buy_not_above '+Number(rationale.buy_not_above).toFixed(2)+' = '+esc(rationale.buy_not_above_note)+'</p>' +
-        '<p class="mono dim">researcher_print at SIGN: '+esc(p.source)+' '+Number(p.last).toFixed(2)+' / '+Number(p.range_low).toFixed(2)+'–'+Number(p.range_high).toFixed(2)+' / '+Number(p.prior).toFixed(2)+' '+esc(p.label)+' · check 3 '+esc(rationale.check_3)+'</p>' +
+        '<p class="mono dim">'+printLabel+': '+esc(p.source)+' '+Number(p.last).toFixed(2)+' / '+Number(p.range_low).toFixed(2)+'–'+Number(p.range_high).toFixed(2)+' / '+Number(p.prior).toFixed(2)+' '+esc(p.label)+' · check 3 '+esc(rationale.check_3)+'</p>' +
+        later +
         '<p class="dim">'+esc(rationale.what_kills_it)+'</p>' +
         '<p class="dim">'+esc(rationale.cos_signoff)+'</p>';
     }
@@ -281,7 +324,7 @@
       });
       renderLiveWhy(events);
       openFromHash(events);
-      window.__deskEvents = events;
+      deskEvents = events;
     }
 
     document.getElementById("hkTime").value = nowHktLocal(new Date());
@@ -311,7 +354,7 @@
         status: "AWAITING TRACKER",
         booked: false,
         ledgerAppended: false,
-        note: "Not a fill. Fill box does not book and does not append FILL. SIGN and FILL stay frozen. Positions and NAV unchanged."
+        note: "Later request only. Not a fill. Fill box does not append FILL and does not change the book. FIRST BUY BOOKED: SPY 6 @ 770.53 at 23:11 HKT, stop NONE."
       };
       try {
         const prev = JSON.parse(localStorage.getItem(KEY) || "[]");
@@ -323,7 +366,7 @@
     });
 
     window.addEventListener("hashchange", function () {
-      openFromHash(window.__deskEvents || newestFirst(SEED));
+      openFromHash(deskEvents);
     });
 
     renderBlotter(SEED);

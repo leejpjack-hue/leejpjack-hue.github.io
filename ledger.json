@@ -52,7 +52,10 @@
         "prior": 765.91,
         "label": "close 04:00 HKT 27 Aug"
       },
-      "check_3": "PENDING",
+      "headline": "Tracker fill SPY 6 @ 770.53 at 23:11 HKT",
+      "check_3": "PASS",
+      "check_7": "booked",
+      "later_print_note": "770.39 is a later print, not the fill",
       "tracker_fill": {
         "ticker": "SPY",
         "qty": 6,
