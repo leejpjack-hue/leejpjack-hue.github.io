@@ -123,28 +123,10 @@
       el.className = "chip " + (status==="OPEN"||status==="PASS"?"pass":status==="LUNCH"||status==="PENDING"?"pend":status==="SKIP"?"skip":"closed");
       el.textContent = text;
     }
-    const REVIEW_AT = zoned(HKT, 2026, 8, 30, 20, 0);
-    function reviewClock(now) {
-      const ms = REVIEW_AT.getTime() - now.getTime();
-      if (ms <= 0) return { open: true, text: "Review window — waiting on Analyst / CoS." };
-      const total = Math.floor(ms / 1000);
-      const d = Math.floor(total / 86400);
-      const h = Math.floor((total % 86400) / 3600);
-      const m = Math.floor((total % 3600) / 60);
-      const s = total % 60;
-      const pad = function (n) { return String(n).padStart(2, "0"); };
-      const clock = pad(h)+":"+pad(m)+":"+pad(s);
-      return { open: false, text: d > 0 ? ("T−"+d+"d "+clock+" HKT") : ("T−"+clock+" HKT") };
-    }
     function tick() {
       const now = new Date();
       const deskHkt = document.getElementById("desk-hkt");
       const footHkt = document.getElementById("foot-hkt");
-      const reviewCount = document.getElementById("review-count");
-      const reviewWindow = document.getElementById("review-window");
-      const rc = reviewClock(now);
-      if (reviewCount) reviewCount.textContent = rc.text;
-      if (reviewWindow) reviewWindow.style.display = rc.open ? "block" : "none";
       if (deskHkt) deskHkt.textContent = fmtZone(now, HKT);
       if (footHkt) footHkt.textContent = fmtHkt(now);
       VENUES.forEach(function (v) {
