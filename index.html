@@ -59,10 +59,17 @@
     .why-head { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; justify-content:space-between; }
     .hash-hit { display:inline-flex; align-items:center; justify-content:center; min-height:44px; min-width:44px; padding:12px; margin:8px 0 0; border:1px solid rgba(201,162,39,.35); border-radius:8px; text-decoration:none; color:var(--gold2); font:13px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; box-sizing:border-box; }
     .ledger .scroll { }
+    .mix-line { margin:10px 0 0; font:15px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:var(--gold2); }
+    .broker-line { margin:8px 0 0; font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-wrap:anywhere; word-break:break-word; }
+    .pos-stack { display:none; gap:10px; margin-top:10px; }
+    .pos-card { border:1px solid #2a3344; border-radius:10px; background:#0c1016; padding:12px; }
     @media (min-width:481px) { .ledger .scroll { overflow-x:auto; } }
     @media (max-width:480px) {
       .ledger .scroll { display:none; }
       .ledger table { display:none; min-width:0; }
+      .pos-scroll { display:none; }
+      .pos-scroll table { display:none; min-width:0; }
+      .pos-stack { display:grid; }
       html, body { overflow-x:hidden; }
     }
     @media (max-width:420px) { h1 { font-size:1rem; } }
@@ -257,17 +264,19 @@
           <div><dt>Open P&amp;L</dt><dd>−US$0.84</dd></div>
           <div><dt>Last fill</dt><dd>23:11 HKT 27 Aug</dd></div>
         </dl>
-        <p class="dim">as_of 2026-08-27T23:11:00+08:00. US held SPY. HK cash. JP cash.</p>
+        <p class="dim">as_of 2026-08-27T23:11:00+08:00. NAV 4999.16 = 376.82 + 6×770.39. US 92.5% / cash 7.5% / HK 0 / JP 0.</p>
       </section>
       <section class="card">
-        <h2 class="kicker" style="color:var(--mute)">Three sleeves · held vs proposed</h2>
-        <div style="overflow:auto">
+        <h2 class="kicker" style="color:var(--mute)">Three sleeves · marked mix</h2>
+        <p class="mix-line">US 92.5% / cash 7.5% / HK 0 / JP 0</p>
+        <p class="dim" style="margin:6px 0 0">No equal 1/3. US is marked value US$4,622.34, not only fill 770.53. cash 7.5% (US$376.82). HK/JP US$0 (0%).</p>
+        <div style="margin-top:12px">
           <table>
             <thead><tr><th>Sleeve</th><th>Held</th><th>Proposed</th><th>Status</th></tr></thead>
             <tbody>
-              <tr><td class="mono"><strong>US</strong></td><td>SPY 6 @ 770.53</td><td>HOLD (filled)</td><td class="dim">Tracker booked FILL</td></tr>
-              <tr><td class="mono"><strong>HK</strong></td><td>CASH 100% · US$0</td><td>CASH</td><td class="dim">cash_hkd 0</td></tr>
-              <tr><td class="mono"><strong>JP</strong></td><td>CASH 100% · US$0</td><td>CASH</td><td class="dim">cash_jpy 0</td></tr>
+              <tr><td class="mono"><strong>US</strong></td><td>marked US$4,622.34 · 92.5%</td><td>HOLD (filled)</td><td class="dim">Tracker booked FILL · fill 6 @ 770.53</td></tr>
+              <tr><td class="mono"><strong>HK</strong></td><td>CASH 100% · US$0 (0%)</td><td>CASH</td><td class="dim">cash_hkd 0</td></tr>
+              <tr><td class="mono"><strong>JP</strong></td><td>CASH 100% · US$0 (0%)</td><td>CASH</td><td class="dim">cash_jpy 0</td></tr>
             </tbody>
           </table>
         </div>
@@ -276,17 +285,48 @@
 
     <section class="card">
       <h2 class="kicker" style="color:var(--mute)">Positions</h2>
-      <div style="overflow:auto">
+      <p class="broker-line">SPY 6 · avg 770.53 · mark 770.39 · value 4,622.34 · open P&amp;L −0.84 · weight 92.5%</p>
+      <p class="dim" style="margin:8px 0 0">NAV 4999.16 = 376.82 + 6×770.39. Mark Yahoo 23:03 HKT 27 Aug. Not a Saturday quote. Fill stays 6 @ 770.53.</p>
+      <div class="pos-scroll" style="margin-top:12px">
         <table>
-          <thead><tr><th>Ticker</th><th>Qty</th><th>Avg</th><th>Sleeve</th><th>Stop</th><th>P&amp;L</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Qty</th>
+              <th>Avg</th>
+              <th>Mark (+ time)</th>
+              <th>Value</th>
+              <th>Open P&amp;L</th>
+              <th>Weight</th>
+              <th>Sleeve</th>
+              <th>Stop</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td class="mono">SPY</td><td class="mono">6</td><td class="mono">770.53</td><td>US</td><td>NONE</td><td>−US$0.84</td></tr>
+            <tr>
+              <td class="mono">SPY</td>
+              <td class="mono">6</td>
+              <td class="mono">770.53</td>
+              <td class="mono">770.39 · Yahoo 23:03 HKT 27 Aug</td>
+              <td class="mono">US$4,622.34</td>
+              <td class="mono">−US$0.84</td>
+              <td class="mono">92.5%</td>
+              <td>US</td>
+              <td>NONE</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+      <div class="pos-stack">
+        <article class="pos-card">
+          <p class="mono" style="margin:0"><strong>SPY</strong> 6 · avg 770.53 · mark 770.39</p>
+          <p class="mono dim" style="margin:6px 0 0">Yahoo 23:03 HKT 27 Aug · value US$4,622.34 · open P&amp;L −US$0.84 · weight 92.5%</p>
+          <p class="dim" style="margin:6px 0 0">Sleeve US · stop NONE. Fill 6 @ 770.53.</p>
+        </article>
       </div>
     </section>
     <footer>Max 3 names. Max 1–2 sleeve changes/week. No equal 1/3. Do not reopen 62% HSBC. 0005/6098 off. Overlay off — ETF path. No daily VCP / pivot / RS90. Next review Sun 30 Aug 2026 20:00 HKT. HKT now <span id="foot-hkt"></span>.</footer>
   </div>
-  <script src="desk.js?v=p3-phone480"></script>
+  <script src="desk.js?v=p4-mix"></script>
 </body>
 </html>

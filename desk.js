@@ -204,7 +204,7 @@
         : '<p class="mono dim">tracker_fill null</p>';
       const printLabel = isFill ? "print at SIGN only" : "researcher_print at SIGN";
       const later = isFill
-        ? '<p class="mono dim">'+esc(rationale.later_print_note || "770.39 is a later print, not the fill")+". Check 7 "+esc(rationale.check_7 || "booked")+".</p>"
+        ? '<p class="mono dim">'+esc(rationale.later_print_note || "770.39 is a later print, not the fill")+". Check 7 "+esc(rationale.check_7 || "booked")+".</p>'
         : "";
       return fillBlock +
         '<p style="margin-top:10px"><span class="muted">Action </span>'+esc(rationale.action)+' · usd_size '+Number(rationale.usd_size).toLocaleString("en-US")+'</p>' +
