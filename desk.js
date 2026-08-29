@@ -1,1 +1,3 @@
-PLACEHOLDER_DESK
+(function () {
+  /* FULL_FILE_FROM_DISK */
+})();
