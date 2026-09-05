@@ -13,6 +13,7 @@ self.addEventListener("install", (event) => {
         scoped("./last-chance/"),
         scoped("./central/"),
         scoped("./about/"),
+        scoped("./connect/"),
         scoped("./manifest.webmanifest"),
         scoped("./apple-touch-icon.png"),
         scoped("./icon-192.png"),
