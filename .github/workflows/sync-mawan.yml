@@ -1,5 +1,6 @@
 name: Sync mawan-times folder
 
+# retrigger after mawan-times a606393 P2-P5
 on:
   push:
     paths:
