@@ -1,0 +1,42 @@
+name: Sync mawan-times folder
+
+on:
+  push:
+    paths:
+      - ".github/workflows/sync-mawan.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-mawan
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy mawan-times gh-pages into /mawan-times
+        run: |
+          set -euo pipefail
+          test -f index.html
+          before=$(sha256sum index.html desk.js ledger.json README.md)
+          rm -rf mawan-times /tmp/mw
+          git clone --depth 1 --branch gh-pages https://github.com/leejpjack-hue/mawan-times.git /tmp/mw
+          mkdir mawan-times
+          cp -a /tmp/mw/. mawan-times/
+          rm -rf mawan-times/.git
+          touch .nojekyll
+          after=$(sha256sum index.html desk.js ledger.json README.md)
+          if [ "$before" != "$after" ]; then
+            echo "REFUSING: desk files changed"
+            exit 1
+          fi
+          echo "desk hashes unchanged"
+          echo "$after"
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Sync /mawan-times from mawan-times gh-pages. Desk index untouched.
+          file_pattern: mawan-times .nojekyll
