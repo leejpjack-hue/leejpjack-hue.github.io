@@ -43,6 +43,13 @@
       "dayTypes": [
         "daily"
       ],
+      "fare": {
+        "visitor": "HK$15.30",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park transportation (NR331S visitor flat fare)",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客單程 · 居民／$2 優惠另計"
+      },
       "notes": [
         "Locked P0 end-to-end clock: every 30 minutes, then one last bus an hour later. Intermediate stops (Tai Ho Road, Tsuen Wan Station, village stops) are omitted."
       ],
@@ -167,6 +174,13 @@
         "weekday",
         "weekend"
       ],
+      "fare": {
+        "visitor": "HK$14.60",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park transportation (NR331 visitor flat fare)",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客單程 · 居民／$2 優惠另計"
+      },
       "notes": [
         "Terminal departures only (Pak Yan Road and Tsuen Wan Station). Village and Kei Wai times are not listed."
       ],
@@ -422,6 +436,13 @@
         "saturday",
         "sunday_ph"
       ],
+      "fare": {
+        "visitor": "HK$13.80",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park / PITCL NR330 visitor flat fare",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客單程 · 居民／$2 優惠另計"
+      },
       "notes": [
         "Terminal departures from Park Island bus terminus and MTR Tsing Yi Station only. Saturday extras marked * on the PITCL PDF (no service on Sunday & PH) are included on Saturday and omitted on Sunday/PH."
       ],
@@ -1441,6 +1462,13 @@
         "weekday",
         "weekend"
       ],
+      "fare": {
+        "visitor": "HK$36.00",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park Central ferry visitor fare",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客成人 · 小童／長者／$2 優惠另計"
+      },
       "notes": [
         "Pier gate-closing times at the two terminals only. Weekday 17:00 / 19:30 from Park Island and 17:30 / 20:00 from Central are omitted — PITCL replaced those sailings with NR338S from 8 Apr 2026."
       ],
@@ -1551,6 +1579,13 @@
         "weekday",
         "weekend"
       ],
+      "fare": {
+        "visitor": "HK$12.00",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park Tsuen Wan ferry visitor fare",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客成人 · 小童／長者／$2 優惠另計"
+      },
       "notes": [
         "Terminal pier times only. Weekday 08:10 from Park Island and 08:30 from Tsuen Wan are omitted — PITCL cancelled those sailings from 8 Apr 2026 (use NR331S)."
       ],
@@ -1623,6 +1658,13 @@
         "weekday",
         "weekend"
       ],
+      "fare": {
+        "visitor": "HK$14.50",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park transportation (NR332 visitor flat fare)",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客單程 · 居民／$2 優惠另計"
+      },
       "notes": [
         "Terminal departures only. Overnight specials from Park Island via Tsing Yi are still Park Island origin times, not Tsing Yi stop times."
       ],
@@ -2115,6 +2157,13 @@
         "weekday",
         "weekend"
       ],
+      "fare": {
+        "visitor": "見 PITCL",
+        "asOf": "2026-09-05",
+        "sourceLabel": "PITCL bus service (NR338S) — visitor fare not listed on Ma Wan Park page",
+        "sourceUrl": "http://www.pitcl.com.hk/en/bus_service.php",
+        "note": "不杜撰車費 · 去官方頁核對"
+      },
       "notes": [
         "Terminal times only: Park Island and Central Ferry Pier (near Pier No. 3). Hong Kong Station times are intermediate and are not listed."
       ],
@@ -2207,6 +2256,13 @@
       "dayTypes": [
         "daily"
       ],
+      "fare": {
+        "visitor": "HK$32.00",
+        "asOf": "2026-09-05",
+        "sourceLabel": "Ma Wan Park NR338 visitor flat fare",
+        "sourceUrl": "https://www.mawanpark.com/eng/visit/transportation-page.html",
+        "note": "訪客單程 · 居民／$2 優惠另計"
+      },
       "notes": [
         "Overnight terminal departures from Park Island and Central Ferry Pier No. 2 only. Wan Chai / Connaught Road times are not listed."
       ],

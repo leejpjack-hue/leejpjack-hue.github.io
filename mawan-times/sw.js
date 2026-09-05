@@ -1,4 +1,4 @@
-const CACHE = "mawan-times-v4-p1";
+const CACHE = "mawan-times-v5-p25";
 
 function scoped(path) {
   return new URL(path, self.registration.scope).href;
@@ -9,6 +9,10 @@ self.addEventListener("install", (event) => {
     caches.open(CACHE).then((cache) =>
       cache.addAll([
         scoped("./"),
+        scoped("./leave-by/"),
+        scoped("./last-chance/"),
+        scoped("./central/"),
+        scoped("./about/"),
         scoped("./manifest.webmanifest"),
         scoped("./apple-touch-icon.png"),
         scoped("./icon-192.png"),
