@@ -1,4 +1,4 @@
-const CACHE = "mawan-times-v5-p25";
+const CACHE = "mawan-times-v7-p4c";
 
 function scoped(path) {
   return new URL(path, self.registration.scope).href;
